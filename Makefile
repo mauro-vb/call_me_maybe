@@ -1,13 +1,14 @@
-PYTHON_VERSION = 3.13.1
-SRC		= src
+PYTHON_VERSION	= 3.13.1
+PYTHON			= python3
+SRC				= src
+
+all: run
 
 check-uv:
 	@if ! command -v uv >/dev/null 2>&1; then \
 		echo "uv is not installed. Please go to https://docs.astral.sh/uv/getting-started/installation/."; \
 		exit 1; \
 	fi
-
-all: run
 
 run: check-uv
 	@uv run $(PYTHON) -m $(SRC)
