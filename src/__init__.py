@@ -1,8 +1,9 @@
 __author__ = 'mauro-vb'
 __version__ = '1.0.0'
 
-# LLM SDK
-#from llm_sdk import Small_LLM_Model
+# LLM SDK and Model Wrapper
+from src.processing.Model import Model
+
 # Parser
 from src.parsing.schemas import Prompt, FunctionDefinition
 from src.parsing.Parser import Parser

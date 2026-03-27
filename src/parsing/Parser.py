@@ -4,7 +4,9 @@ from src import Prompt, FunctionDefinition
 from pydantic import ValidationError
 
 class Parser:
+    '''Parsing helper to extract prompts and function definitions'''
     def __init__(self, prompts_file: str, fn_definitions_path: str) -> None:
+        '''Sets up helper, expects paths to prompt and definition jsons.'''
         self._prompts = self._parse_prompts(prompts_file)
         self._function_defs = self._parse_function_defs(fn_definitions_path)
 

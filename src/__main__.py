@@ -1,4 +1,4 @@
-from src import Parser
+from src import Parser, Model
 
 def main() -> None:
     print("Executing main...")
@@ -8,11 +8,10 @@ def main() -> None:
         prompts_file_path, definitions_file_path
     )
 
-    defs = parser.get_function_definitions()
-    prompts = parser.get_prompts()
-
-    print(len(prompts), type(prompts))
-    print(len(defs), defs)
+    model: Model = Model()
+    stream = model.generate_stream('Who is the richest man on earth?', max_new_tokens= 10000)
+    for token in stream:
+        print(token, end="")
 
 
 if __name__ == '__main__':
