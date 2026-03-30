@@ -1,64 +1,48 @@
 from llm_sdk import Small_LLM_Model
-from typing import Generator, List, Tuple
+import json
+from typing import Callable, List, Tuple, Generator
+
 
 class Model(Small_LLM_Model):
-    '''Wrapper with additional functionality for Small_LLM_Model'''
+    """Wrapper around Small_LLM_Model with token-level constrained decoding"""
 
-    def generate_stream(
-        self,
-        prompt: str,
-        previous_tokens: str = '',
-    ):
-        base_ids: List[int] = self.encode(self.build_prompt(prompt)).tolist()[0]
-        prev_ids: List[int] = self.encode(previous_tokens).tolist()[0]
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        vocab_path: str = self.get_path_to_vocab_file()
+        with open(vocab_path) as f:
+            self._vocab: dict[int, str] = json.load(f)
 
-        input_ids: List[int] = base_ids + prev_ids
+    def get_masked_logits(self, logits: List[float], valid_token_ids: List[int]) -> List[float]:
+        masked = [-float("inf")] * len(logits)
+        for token_id in valid_token_ids:
+            masked[token_id] = logits[token_id]
+        return masked
 
-        while True:
-            token_id: int = self._next_token_ids(input_ids)
-            input_ids.append(token_id)
-
-            token_str: str = self.decode([token_id])
-            yield token_str
-
-            if token_id == self._tokenizer.eos_token_id:
-                break
-            if "<|im_end|>" in token_str:
-                break
-
-
-    def generate_token(self, prompt: str, previous_tokens: str) -> str:
-        base_prompt: str = self.build_prompt(prompt)
-        full_prompt: str = base_prompt + previous_tokens
-        return self._next_token(full_prompt)[1]
-
-    def _next_token(
-        self,
-        full_prompt: str,
-    ) -> Tuple[int, str]:
-        input_ids: List[int] = self.encode(full_prompt).tolist()[0]
-        logits: List[float] = self.get_logits_from_input_ids(input_ids)
-        sorted_logits: List[float] = sorted(logits, reverse=True)
-        token_id: int = logits.index(sorted_logits[0])
-        return token_id, self.decode([token_id])
-
-    def _next_token_ids(
-        self,
-        input_ids: List[int],
-    ) -> Tuple[int, str]:
-        logits: List[float] = self.get_logits_from_input_ids(input_ids)
+    def _next_valid_token_id(self, input_ids: List[int], valid_token_ids: List[int] | None) -> int:
+        logits = self.get_logits_from_input_ids(input_ids)
+        if valid_token_ids is not None:
+            logits = self.get_masked_logits(logits, valid_token_ids)
         return max(range(len(logits)), key=lambda i: logits[i])
 
-    def build_prompt(self, user_message: str, think: bool = False) -> str:
-        '''Builds well formatted prompt given a user message,
-            allows for think which defaults to False'''
-        messages = [
-            {"role": "user", "content": user_message}
-        ]
+    def generate_stream(
+        self, prompt: str,
+        get_valid_tokens: Callable[[None], List[int]] | None = None
+    ) -> Generator[Tuple[int, str], None, None]:
+        input_ids: List[int] = self.encode(self.build_prompt(prompt)).tolist()[0]
+        while True:
+            valid_tokens = get_valid_tokens() if get_valid_tokens is not None else None
+            token_id = self._next_valid_token_id(input_ids, valid_tokens)
+            input_ids.append(token_id)
+            token_str = self.decode([token_id])
+            yield token_id, token_str
+            if token_id == self._tokenizer.eos_token_id or "<|im_end|>" in token_str:
+                break
 
+    def build_prompt(self, user_message: str, think: bool = False) -> str:
+        messages = [{"role": "user", "content": user_message}]
         return self._tokenizer.apply_chat_template(
-            messages,
-            tokenize=False,
-            add_generation_prompt=True,
-            enable_thinking=think
+            messages, tokenize=False, add_generation_prompt=True, enable_thinking=think
         )
+
+    def get_valid_token_ids_by_predicate(self, predicate: Callable[[str], bool]) -> List[int]:
+        return [int(token_id) for token_str, token_id in self._vocab.items() if predicate(token_str)]

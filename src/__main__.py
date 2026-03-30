@@ -17,8 +17,7 @@ def main() -> None:
         parser.get_prompts(),
         parser.get_function_definitions())
 
-    function_name = processor.generate_function_name("Replace all vowels in 'Programming is fun' with asterisks")
-    print(function_name)
+    print(processor.generate_json_from_prompt("What is the sum of 2 and 3?"))
 
 if __name__ == '__main__':
     main()
