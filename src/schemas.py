@@ -7,7 +7,7 @@ class Prompt(BaseModel):
     prompt: str = Field(min_length=1)
 
 
-SUPPORTED_TYPES: Tuple[str] = (
+SUPPORTED_TYPES: Tuple[str, str] = (
     'number', 'string'
 )
 

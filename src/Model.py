@@ -1,16 +1,16 @@
 from llm_sdk import Small_LLM_Model
 import json
-from typing import Callable, List, Tuple, Generator
+from typing import Callable, Dict, List, Tuple, Generator, Any
 
 
 class Model(Small_LLM_Model):
     """Wrapper around Small_LLM_Model with token-level constrained decoding"""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         vocab_path: str = self.get_path_to_vocab_file()
         with open(vocab_path) as f:
-            self._vocab: dict[int, str] = json.load(f)
+            self._vocab: Dict[str, int] = json.load(f)
 
     def get_masked_logits(
         self, logits: List[float], valid_token_ids: List[int]
@@ -30,7 +30,7 @@ class Model(Small_LLM_Model):
 
     def generate_stream(
         self, prompt: str,
-        get_valid_tokens: Callable[[None], List[int]] | None = None
+        get_valid_tokens: Callable | None = None
     ) -> Generator[Tuple[int, str], None, None]:
         input_ids: List[int] = self.encode(
             self.build_prompt(prompt)).tolist()[0]
@@ -46,7 +46,7 @@ class Model(Small_LLM_Model):
             if token_id == self._tokenizer.eos_token_id:
                 break
 
-    def build_prompt(self, user_message: str, think: bool = False) -> str:
+    def build_prompt(self, user_message: str, think: bool = False) -> Any:
         messages = [{"role": "user", "content": user_message}]
         return self._tokenizer.apply_chat_template(
             messages, tokenize=False,

@@ -4,7 +4,7 @@ from src import Model, Prompt, FunctionDefinition
 
 class JSONState:
     """Tracks JSON generation state at token level"""
-    def __init__(self):
+    def __init__(self) -> None:
         self.stack: List[str] = []
         self.start: bool = True
         self.in_string: bool = False
@@ -38,7 +38,7 @@ class PromptProcessor:
             }
             for f in self.function_defs
         ]
-        available_function_defs: List = self.function_defs
+        available_fn_defs: List[FunctionDefinition] = self.function_defs
 
         full_prompt: str = (
             'Which of the following available functions:\n'
@@ -50,15 +50,15 @@ class PromptProcessor:
         for _, token_str in stream:
             if any(
                 f.name.startswith(function_name_gen + token_str)
-                for f in available_function_defs
+                for f in available_fn_defs
             ):
                 function_name_gen += token_str
-                available_function_defs = [
-                    f for f in available_function_defs
+                available_fn_defs = [
+                    f for f in available_fn_defs
                     if f.name.startswith(function_name_gen)
                 ]
-            if len(available_function_defs) == 1:
-                return available_function_defs[0]
+            if len(available_fn_defs) == 1:
+                return available_fn_defs[0]
         raise Exception("No function found for prompt")
 
     def generate_json_from_prompt(self, prompt: Prompt) -> str:
