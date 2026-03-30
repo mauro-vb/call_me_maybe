@@ -1,6 +1,5 @@
-from typing import List, Dict, Generator, Callable
+from typing import List, Dict, Generator
 from src import Model, Prompt, FunctionDefinition
-import re
 
 
 class JSONState:
@@ -12,30 +11,41 @@ class JSONState:
         self.expect_key: bool = False
         self.expect_colon: bool = False
         self.expect_value: bool = False
-        self.current_key: str = None
-        self.expect_parameters: bool = False
-        self.current_param_index = 0
+        self.current_key: str = ''
+        self.buffer: str = ''
 
 
 class PromptProcessor:
     """Generates structured JSON output for a given prompt"""
 
-    def __init__(self, model: Model, prompts: List[Prompt], function_defs: List[FunctionDefinition]):
+    def __init__(
+        self,
+        model: Model,
+        prompts: List[Prompt],
+        function_defs: List[FunctionDefinition]
+    ) -> None:
         self.model: Model = model
         self.prompts: List[Prompt] = prompts
         self.function_defs: List[FunctionDefinition] = function_defs
 
-    def get_function_def(self, prompt: Prompt) -> FunctionDefinition:
+    def get_function_def(
+        self, prompt: Prompt
+    ) -> FunctionDefinition:
         available_functions: List[Dict[str, str]] = [
-            {"name": f.name, "description": f.description} for f in self.function_defs
+            {
+                "name": f.name,
+                "description": f.description
+            }
+            for f in self.function_defs
         ]
-        available_function_defs: List[FunctionDefinition] = self.function_defs
-        generated_function: str = ''
+        available_function_defs: List = self.function_defs
 
-        full_prompt: str = 'Which of the following available functions:\n' + \
-        f'{available_functions}\n' + \
-        f'Should be used to resolve this "{prompt}"?'
-        stream: Generator[Tuple[int, str], None, None] = self.model.generate_stream(full_prompt)
+        full_prompt: str = (
+            'Which of the following available functions:\n'
+            f'{available_functions}\n'
+            f'Should be used to resolve this "{prompt}"?'
+        )
+        stream: Generator = self.model.generate_stream(full_prompt)
         function_name_gen: str = ''
         for _, token_str in stream:
             if any(
@@ -65,23 +75,50 @@ class PromptProcessor:
         output = ''
 
         def get_valid_tokens() -> List[int]:
-            if state.start:
-                return self.model.get_valid_token_ids_by_predicate(lambda t: t.strip() == '{')
+            def is_number_token(t: str) -> bool:
+                t = t.strip()
+                return t != "" and all(c in "0123456789-." for c in t)
 
-            if state.expect_key or state.expect_value:
+            def is_end_token(t: str) -> bool:
+                return t.strip() in {",", "}"}
+
+            if state.start:
+                return self.model.get_valid_token_ids_by_predicate(
+                    lambda t: t.strip() == '{')
+
+            if state.expect_key:
                 if state.in_string:
-                    # inside a string, allow anything except unescaped double quote
                     return None
                 else:
-                    # outside a string, must start with double quote for key or string value
-                    return self.model.get_valid_token_ids_by_predicate(lambda t: t == '"')
+                    return self.model.get_valid_token_ids_by_predicate(
+                        lambda t: t == '"')
+
+            if state.expect_value:
+                if state.in_string:
+                    return None
+                if state.current_key in ('prompt', 'name'):
+                    return self.model.get_valid_token_ids_by_predicate(
+                        lambda t: t == '"')
+                if state.current_key == 'parameters':
+                    return self.model.get_valid_token_ids_by_predicate(
+                        lambda t: t.strip() == '{')
+                for param_name, value in function_def.parameters.items():
+                    if state.current_key == param_name:
+                        if value['type'] == 'string':
+                            return self.model.get_valid_token_ids_by_predicate(
+                                lambda t: t.strip() == '{')
+                        if value['type'] == 'number':
+                            return self.model.get_valid_token_ids_by_predicate(
+                                lambda t: is_number_token(t) or is_end_token(t)
+                            )
 
             if state.expect_colon:
-                return self.model.get_valid_token_ids_by_predicate(lambda t: t == ':')
+                return self.model.get_valid_token_ids_by_predicate(
+                    lambda t: t == ':')
 
             if not state.in_string:
-                # allow only JSON punctuation outside string
-                return self.model.get_valid_token_ids_by_predicate(lambda t: t.strip() in {',', '}'})
+                return self.model.get_valid_token_ids_by_predicate(
+                    lambda t: is_end_token(t))
 
             return None
 
@@ -89,8 +126,11 @@ class PromptProcessor:
             for char in token_str:
                 if char == '"':
                     state.in_string = not state.in_string
-                    if not state.in_string:
+                    if state.in_string:
+                        state.buffer = ''
+                    else:
                         if state.expect_key:
+                            state.current_key = state.buffer
                             state.expect_key = False
                             state.expect_colon = True
                         elif state.expect_value:
@@ -98,6 +138,7 @@ class PromptProcessor:
                     continue
 
                 if state.in_string:
+                    state.buffer += char
                     continue
 
                 if char == '{':
@@ -114,19 +155,14 @@ class PromptProcessor:
                     state.expect_key = True
                     state.expect_value = False
 
-        # Token-by-token generation
-        for token_id, token_str in self.model.generate_stream(full_prompt, get_valid_tokens):
+        for token_id, token_str in self.model.generate_stream(
+            full_prompt, get_valid_tokens
+        ):
             if not state.stack and not state.start:
                 break
             output += token_str
-            if not state.expect_parameters and re.search(r'"parameters"\s*:\s*$', output):
-                state.expect_parameters = True
-                state.current_param_index = 0
-                print("Entered parameters state")
             update_state(token_str)
+            print(state.current_key)
             print(output)
-
-
-
 
         return output

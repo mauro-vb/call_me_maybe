@@ -1,6 +1,7 @@
 from src import Parser, Model, PromptProcessor
 import os
 
+
 def main() -> None:
     print("Executing main...")
     prompts_file_path: str = os.path.join(
@@ -18,6 +19,7 @@ def main() -> None:
         parser.get_function_definitions())
 
     print(processor.generate_json_from_prompt("What is the sum of 2 and 3?"))
+
 
 if __name__ == '__main__':
     main()

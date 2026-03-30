@@ -3,6 +3,7 @@ import json
 from src import Prompt, FunctionDefinition
 from pydantic import ValidationError
 
+
 class Parser:
     '''Parsing helper to extract prompts and function definitions'''
     def __init__(self, prompts_file: str, fn_definitions_path: str) -> None:
