@@ -1,6 +1,6 @@
 *This project has been created as part of the 42 curriculum by mvazquez.*
 
-# README
+# Call Me Maybe
 
 ## Description
 This project explores constrained decoding techniques applied to a small (0.6B parameter model) LLM in order to reliably generate structured JSON outputs. The main goal is to ensure that the model produces valid and well-formed JSON objects while still leveraging the generative capabilities of the LLM.
