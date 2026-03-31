@@ -65,7 +65,7 @@ def main() -> None:
     with open(args.output, 'w', encoding='utf-8') as f:
         json.dump(output, f, indent=2)
 
-    print(f"Results saved successfully to {args.output}")
+    print(f"\nResults saved successfully to {args.output}")
 
 
 if __name__ == '__main__':

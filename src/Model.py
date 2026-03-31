@@ -1,4 +1,4 @@
-from llm_sdk import Small_LLM_Model
+from src import Small_LLM_Model
 import json
 from typing import Callable, Dict, List, Tuple, Generator, Any
 

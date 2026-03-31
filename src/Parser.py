@@ -21,7 +21,7 @@ class Parser:
     def _parse_file(file_path: str) -> List[Dict]:
         try:
             with open(file_path, 'r') as file:
-                data = json.load(file)
+                data: List[Dict] = json.load(file)
 
             if not data:
                 raise ValueError("File is empty")
@@ -41,12 +41,13 @@ class Parser:
     def _parse_prompts(self, f: str) -> List[Prompt]:
         prompt_dicts: List[Dict[str, str]] = self._parse_file(f)
         try:
-            prompts: List[Dict[str, str]] = []
+            prompts: List[Prompt] = []
             for prompt_dict in prompt_dicts:
                 prompts.append(Prompt(prompt=prompt_dict['prompt']))
             return prompts
         except KeyError as e:
             print(f'Missing key in prompt: {e}')
+            quit()
         except ValidationError as e:
             print(f'Error while validating prompts: {e}')
             quit()
@@ -78,6 +79,7 @@ class Parser:
             return defs
         except KeyError as e:
             print(f'Missing key in function definition: {e}')
+            quit()
         except ValidationError as e:
             print(f'Error while validating prompts: {e}')
             quit()

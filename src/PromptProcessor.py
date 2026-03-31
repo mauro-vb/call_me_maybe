@@ -81,7 +81,7 @@ class PromptProcessor:
         state = JSONState()
         output = ''
 
-        def get_valid_tokens() -> List[int]:
+        def get_valid_tokens() -> List[int] | None:
             def is_number_token(t: str) -> bool:
                 t = t.strip()
                 return all(c in "0123456789-." for c in t)
@@ -137,7 +137,7 @@ class PromptProcessor:
 
             return None
 
-        def update_state(token_str: str):
+        def update_state(token_str: str) -> None:
             for char in token_str:
                 if char == '"':
                     state.in_string = not state.in_string
@@ -179,9 +179,10 @@ class PromptProcessor:
             output += token_str
             update_state(token_str)
         try:
-            return json.loads(output)
+            return dict(json.loads(output))
         except json.JSONDecodeError:
             print(f"Couldn't parse dictionary from LLM Output...\n{output}")
+            return {"prompt": prompt.prompt}
 
     def process_prompts(self) -> List[Dict[str, Any]]:
         output: List[Dict[str, Any]] = []
