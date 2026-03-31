@@ -1,0 +1,173 @@
+[
+  {
+    "prompt": "Add two numbers together and return their sum.",
+    "name": "fn_add_numbers",
+    "parameters": {
+      "a": 0,
+      "b": 0
+    }
+  },
+  {
+    "prompt": "Reverse the string ''",
+    "name": "fn_reverse_string",
+    "parameters": {
+      "s": ""
+    }
+  },
+  {
+    "prompt": "Greet ''",
+    "name": "fn_greet",
+    "parameters": {
+      "name": ""
+    }
+  },
+  {
+    "prompt": "What is the sum of 999999999999999999 and 888888888888888888?",
+    "name": "fn_add_numbers",
+    "parameters": {
+      "a": 999999999999999999,
+      "b": 888888888888888888
+    }
+  },
+  {
+    "prompt": "Calculate the square root of 1000000000000000000",
+    "name": "fn_get_square_root",
+    "parameters": {
+      "a": 1000000000000000000
+    }
+  },
+  {
+    "prompt": "Multiply 12345678901234567890 by 98765432109876543210",
+    "name": "fn_multiply_numbers",
+    "parameters": {
+      "a": 12345678901234567890,
+      "b": 98765432109876543210
+    }
+  },
+  {
+    "prompt": "What is the sum of -5 and -10?",
+    "name": "fn_add_numbers",
+    "parameters": {
+      "a": -5,
+      "b": -10
+    }
+  },
+  {
+    "prompt": "What is the sum of -5 and 0?",
+    "name": "fn_add_numbers",
+    "parameters": {
+      "a": -5,
+      "b": 0
+    }
+  },
+  {
+    "prompt": "Calculate the square root of 0",
+    "name": "fn_get_square_root",
+    "parameters": {
+      "a": 0
+    }
+  },
+  null,
+  null,
+  {
+    "prompt": "Substitute punctuation in 'Hello, world! How's it going?' with '_'"
+  },
+  {
+    "prompt": "Greet user with name 'O'Reilly'",
+    "name": "fn_greet",
+    "parameters": {
+      "name": "O'Reilly"
+    }
+  },
+  {
+    "prompt": "Add 2 to 3 and reverse the string 'abc'",
+    "name": "fn_add_numbers",
+    "parameters": {
+      "a": 2,
+      "b": 3
+    }
+  },
+  null,
+  {
+    "prompt": "Greet the person or calculate sum",
+    "name": "fn_greet",
+    "parameters": {
+      "name": "string"
+    }
+  },
+  {
+    "prompt": "What is the sum of 'five' and 'three'?",
+    "name": "fn_add_numbers",
+    "parameters": {
+      "a": 5,
+      "b": 3
+    }
+  },
+  {
+    "prompt": "Calculate the square root of 'sixteen'",
+    "name": "fn_get_square_root",
+    "parameters": {
+      "a": 16
+    }
+  },
+  {
+    "prompt": "Reverse the string 12345",
+    "name": "fn_reverse_string",
+    "parameters": {
+      "s": "12345"
+    }
+  },
+  {
+    "prompt": "Create a user with name 'Alice' and age 30",
+    "name": "fn_greet",
+    "parameters": {
+      "name": "Alice"
+    }
+  },
+  {
+    "prompt": "Replace all 'cat' with 'dog' in 'cat and cat' ignoring case",
+    "name": "fn_substitute_string_with_regex",
+    "parameters": {
+      "source_string": "cat and cat",
+      "regex": "cat",
+      "replacement": "dog"
+    }
+  },
+  null,
+  {
+    "prompt": "Reverse the string 'She said "
+  },
+  {
+    "prompt": "Substitute all quotes in '"
+  },
+  {
+    "prompt": "Greet 'Bob 'The Builder'",
+    "name": "fn_greet",
+    "parameters": {
+      "name": "Bob"
+    }
+  },
+  {
+    "prompt": "Add 0 to 0",
+    "name": "fn_add_numbers",
+    "parameters": {
+      "a": 0,
+      "b": 0
+    }
+  },
+  {
+    "prompt": "Calculate the square root of 1",
+    "name": "fn_get_square_root",
+    "parameters": {
+      "a": 1
+    }
+  },
+  null,
+  {
+    "prompt": "Reverse the string '\n\t\r'",
+    "name": "fn_reverse_string",
+    "parameters": {
+      "s": "'\n\t\r'"
+    }
+  }
+]

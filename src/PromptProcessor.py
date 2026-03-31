@@ -1,10 +1,13 @@
-from typing import List, Dict, Generator
-from src import Model, Prompt, FunctionDefinition
+from typing import List, Dict, Generator, Any
+from src import Prompt, FunctionDefinition
+from src.Model import Model
+import json
 
 
 class JSONState:
     """Tracks JSON generation state at token level"""
     def __init__(self) -> None:
+        self.generated_root_keys: set = set()
         self.stack: List[str] = []
         self.start: bool = True
         self.in_string: bool = False
@@ -22,7 +25,7 @@ class PromptProcessor:
         self,
         model: Model,
         prompts: List[Prompt],
-        function_defs: List[FunctionDefinition]
+        function_defs: List[FunctionDefinition],
     ) -> None:
         self.model: Model = model
         self.prompts: List[Prompt] = prompts
@@ -61,11 +64,15 @@ class PromptProcessor:
                 return available_fn_defs[0]
         raise Exception("No function found for prompt")
 
-    def generate_json_from_prompt(self, prompt: Prompt) -> str:
+    def generate_dict_from_prompt(self, prompt: Prompt) -> Dict:
         function_def: FunctionDefinition = self.get_function_def(prompt)
         full_prompt = (
-            f'Generate a JSON object based on this prompt:\n"{prompt}"\n'
+            'Generate a JSON object based on this prompt:'
+            f'\n"{prompt.prompt}"\n'
             f'Use this given function:\n{function_def.full_definition}\n'
+            'Here is an example:\n'
+            '{"prompt":"Reverse the string \'chocolate\'"'
+            ',"name":"fn_reverse_string","parameters":{"s":"hello"}}'
             'Output a valid JSON object with exactly these keys:\n'
             '"prompt": string\n"name": string\n"parameters": object\n'
             'Do not invent new keys or change parameter names.'
@@ -77,7 +84,13 @@ class PromptProcessor:
         def get_valid_tokens() -> List[int]:
             def is_number_token(t: str) -> bool:
                 t = t.strip()
-                return t != "" and all(c in "0123456789-." for c in t)
+                return all(c in "0123456789-." for c in t)
+
+            def is_valid_str_token(t: str) -> bool:
+                quote_count: int = t.count('"')
+                if quote_count < 2:
+                    return True
+                return False
 
             def is_end_token(t: str) -> bool:
                 return t.strip() in {",", "}"}
@@ -88,14 +101,16 @@ class PromptProcessor:
 
             if state.expect_key:
                 if state.in_string:
-                    return None
+                    return self.model.get_valid_token_ids_by_predicate(
+                        lambda t: is_valid_str_token(t))
                 else:
                     return self.model.get_valid_token_ids_by_predicate(
                         lambda t: t == '"')
 
             if state.expect_value:
                 if state.in_string:
-                    return None
+                    return self.model.get_valid_token_ids_by_predicate(
+                        lambda t: is_valid_str_token(t))
                 if state.current_key in ('prompt', 'name'):
                     return self.model.get_valid_token_ids_by_predicate(
                         lambda t: t == '"')
@@ -106,7 +121,7 @@ class PromptProcessor:
                     if state.current_key == param_name:
                         if value['type'] == 'string':
                             return self.model.get_valid_token_ids_by_predicate(
-                                lambda t: t.strip() == '{')
+                                lambda t: t.strip() == '"')
                         if value['type'] == 'number':
                             return self.model.get_valid_token_ids_by_predicate(
                                 lambda t: is_number_token(t) or is_end_token(t)
@@ -146,6 +161,7 @@ class PromptProcessor:
                     state.stack.append('{')
                     state.expect_key = True
                 elif char == '}':
+                    state.expect_value = False
                     if state.stack:
                         state.stack.pop()
                 elif char == ':':
@@ -162,7 +178,13 @@ class PromptProcessor:
                 break
             output += token_str
             update_state(token_str)
-            print(state.current_key)
-            print(output)
+        try:
+            return json.loads(output)
+        except json.JSONDecodeError:
+            print(f"Couldn't parse dictionary from LLM Output...\n{output}")
 
+    def process_prompts(self) -> List[Dict[str, Any]]:
+        output: List[Dict[str, Any]] = []
+        for prompt in self.prompts:
+            output.append(self.generate_dict_from_prompt(prompt))
         return output

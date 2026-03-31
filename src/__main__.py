@@ -1,24 +1,71 @@
 from src import Parser, Model, PromptProcessor
+from typing import List, Dict
 import os
+import json
+import argparse
 
 
 def main() -> None:
-    print("Executing main...")
-    prompts_file_path: str = os.path.join(
-        'data', 'input', 'function_calling_tests.json')
-    definitions_file_path: str = os.path.join(
-        'data', 'input', 'functions_definition.json')
-    parser: Parser = Parser(
-        prompts_file_path, definitions_file_path
+    parser_cli = argparse.ArgumentParser(
+        description=(
+            "Generate structured JSON from"
+            "prompts using function definitions"
+        )
     )
 
-    model: Model = Model()
-    processor = PromptProcessor(
-        model,
-        parser.get_prompts(),
-        parser.get_function_definitions())
+    parser_cli.add_argument(
+        "--input",
+        type=str,
+        default=os.path.join(
+            'data', 'input', 'function_calling_tests.json'),
+        help=(
+            "Path to the prompts JSON file (default: "
+            "data/input/function_calling_tests.json)"
+        )
+    )
 
-    print(processor.generate_json_from_prompt("What is the sum of 2 and 3?"))
+    parser_cli.add_argument(
+        "--functions_definition",
+        type=str,
+        default=os.path.join('data', 'input', 'functions_definition.json'),
+        help=(
+            "Path to the function definitions JSON file "
+            "(default: data/input/functions_definition.json)"
+        )
+    )
+
+    parser_cli.add_argument(
+        "--output",
+        type=str,
+        default=os.path.join('data', 'output', 'results.json'),
+        help=(
+            "Path to save the generated JSON output "
+            "(default: data/output/results.json)"
+        )
+    )
+
+    args = parser_cli.parse_args()
+
+    print(f"\nUsing input prompts file: {args.input}")
+    print(f"Using function definitions file: {args.functions_definition}")
+    print(f"Output will be saved to: {args.output}\n\n")
+
+    parser_obj: Parser = Parser(args.input, args.functions_definition)
+
+    # Initialize model and processor
+    model: Model = Model()
+    processor: PromptProcessor = PromptProcessor(
+        model,
+        parser_obj.get_prompts(),
+        parser_obj.get_function_definitions()
+    )
+
+    output: List[Dict] = processor.process_prompts()
+    os.makedirs(os.path.dirname(args.output), exist_ok=True)
+    with open(args.output, 'w', encoding='utf-8') as f:
+        json.dump(output, f, indent=2)
+
+    print(f"Results saved successfully to {args.output}")
 
 
 if __name__ == '__main__':

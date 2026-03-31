@@ -23,7 +23,8 @@ install: check-uv
 
 lint:
 	@uv run python -m flake8 $(SRC)
-	@mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
+	@mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs\
+		--exclude 'llm_sdk'
 
 lint-strict:
 	@echo "\n-- Running flake8 --\n"

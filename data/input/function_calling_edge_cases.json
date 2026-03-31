@@ -1,0 +1,45 @@
+[
+  { "prompt": " " },
+  { "prompt": "Reverse the string ''" },
+  { "prompt": "Greet ''" },
+
+  { "prompt": "What is the sum of 999999999999999999 and 888888888888888888?" },
+  { "prompt": "Calculate the square root of 1000000000000000000" },
+  { "prompt": "Multiply 12345678901234567890 by 98765432109876543210" },
+
+  { "prompt": "What is the sum of -5 and -10?" },
+  { "prompt": "What is the sum of -5 and 0?" },
+  { "prompt": "Calculate the square root of 0" },
+
+  { "prompt": "Reverse the string 'Hello \\\"World\\\"!'" },
+  {
+    "prompt": "Replace all numbers in 'Price is $45.67 and tax 8%' with 'NUM'"
+  },
+  {
+    "prompt": "Substitute punctuation in 'Hello, world! How's it going?' with '_'"
+  },
+  { "prompt": "Greet user with name 'O'Reilly'" },
+
+  { "prompt": "Add 2 to 3 and reverse the string 'abc'" },
+  { "prompt": "What is 5 + 5? Or should I reverse it?" },
+  { "prompt": "Greet the person or calculate sum" },
+
+  { "prompt": "What is the sum of 'five' and 'three'?" },
+  { "prompt": "Calculate the square root of 'sixteen'" },
+  { "prompt": "Reverse the string 12345" },
+
+  { "prompt": "Create a user with name 'Alice' and age 30" },
+  { "prompt": "Replace all 'cat' with 'dog' in 'cat and cat' ignoring case" },
+  { "prompt": "Add numbers 5, 10, and 15 together" },
+
+  { "prompt": "Reverse the string 'She said \"Hello\" and left'" },
+  {
+    "prompt": "Substitute all quotes in '\"Hello\", he said' with empty string"
+  },
+  { "prompt": "Greet 'Bob \"The Builder\"'" },
+
+  { "prompt": "Add 0 to 0" },
+  { "prompt": "Calculate the square root of 1" },
+  { "prompt": "Reverse the string ' '" },
+  { "prompt": "Reverse the string '\\n\\t\\r'" }
+]

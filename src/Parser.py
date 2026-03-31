@@ -29,11 +29,14 @@ class Parser:
             return data
 
         except FileNotFoundError:
-            raise FileNotFoundError(f'Could not find file: {file_path}')
+            print(f'Could not find file: {file_path}')
+            quit()
         except PermissionError:
-            raise PermissionError(f'No permission to read: {file_path}')
+            print(f'No permission to read: {file_path}')
+            quit()
         except json.JSONDecodeError:
-            raise ValueError(f'Invalid JSON in file: {file_path}')
+            print(f'Invalid JSON in file: {file_path}')
+            quit()
 
     def _parse_prompts(self, f: str) -> List[Prompt]:
         prompt_dicts: List[Dict[str, str]] = self._parse_file(f)
@@ -50,6 +53,16 @@ class Parser:
 
     def _parse_function_defs(self, f: str) -> List[FunctionDefinition]:
         def_dicts: List[Dict[str, Any]] = self._parse_file(f)
+
+        def extract_full_def(def_dict: Dict) -> str:
+            new_def_dict: Dict = {}
+            for key, value in def_dict.items():
+                if key == "parameters":
+                    new_def_dict[key] = [name for name in value]
+                else:
+                    new_def_dict[key] = value
+            return str(new_def_dict)
+
         try:
             defs: List[FunctionDefinition] = []
             for def_dict in def_dicts:
@@ -59,7 +72,7 @@ class Parser:
                         description=def_dict['description'],
                         parameters=def_dict['parameters'],
                         returns=def_dict['returns'],
-                        full_definition=str(def_dict)
+                        full_definition=extract_full_def(def_dict)
                     )
                 )
             return defs
