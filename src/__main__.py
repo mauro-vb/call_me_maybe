@@ -44,6 +44,14 @@ def main() -> None:
         )
     )
 
+    parser_cli.add_argument(
+        "--silent",
+        action='store_true',
+        help=(
+            "Run silently "
+        )
+    )
+
     args = parser_cli.parse_args()
 
     print(f"\nUsing input prompts file: {args.input}")
@@ -57,7 +65,8 @@ def main() -> None:
     processor: PromptProcessor = PromptProcessor(
         model,
         parser_obj.get_prompts(),
-        parser_obj.get_function_definitions()
+        parser_obj.get_function_definitions(),
+        verbose=not args.silent
     )
 
     output: List[Dict] = processor.process_prompts()

@@ -23,7 +23,7 @@ make install
 ### Execution
 
 ```bash
-uv run python -m src [--functions_definition <function_definition_file>] [--input <input_file>] [--output <output_file>]
+uv run python -m src [--functions_definition <function_definition_file>] [--input <input_file>] [--output <output_file>] [--silent]
 ```
 
 Arguments:

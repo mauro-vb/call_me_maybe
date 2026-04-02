@@ -26,26 +26,8 @@ lint:
 	@mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs\
 		--exclude 'llm_sdk'
 
-lint-strict:
-	@echo "\n-- Running flake8 --\n"
-	-@$(VENV_PYTHON) -m flake8 $(SRC)
-	@echo "Running mypy"
-	-@$(VENV_PYTHON) -m mypy . --strict \
-        --exclude '(build|dist|\.venv)'\
-		--warn-return-any \
-		--warn-unused-ignores \
-		--ignore-missing-imports \
-		--disallow-untyped-defs \
-		--check-untyped-defs
-
-fix-lint: check-uv
-	@uv run ruff check --fix
-
-fix-format: check-uv
-	@uv run ruff format
-
 clean:
 	@rm -rf .mypy_cache
 	@find . -type d -name "__pycache__" -exec rm -rf {} +
 
-.PHONY: all install run debug lint lint-strict clean fix-lint fix-format
+.PHONY: all install run debug lint

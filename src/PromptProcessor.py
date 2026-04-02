@@ -26,10 +26,12 @@ class PromptProcessor:
         model: Model,
         prompts: List[Prompt],
         function_defs: List[FunctionDefinition],
+        verbose: bool = True
     ) -> None:
         self.model: Model = model
         self.prompts: List[Prompt] = prompts
         self.function_defs: List[FunctionDefinition] = function_defs
+        self.verbose: bool = verbose
 
     def get_function_def(
         self, prompt: Prompt
@@ -65,7 +67,12 @@ class PromptProcessor:
         raise Exception("No function found for prompt")
 
     def generate_dict_from_prompt(self, prompt: Prompt) -> Dict:
-        function_def: FunctionDefinition = self.get_function_def(prompt)
+        if self.verbose:
+            print(f'\nGenerating json for "{prompt.prompt}":')
+        try:
+            function_def: FunctionDefinition = self.get_function_def(prompt)
+        except Exception:
+            raise ValueError('No valid function found...')
         full_prompt = (
             'Generate a JSON object based on this prompt:'
             f'\n"{prompt.prompt}"\n'
@@ -177,11 +184,14 @@ class PromptProcessor:
             if not state.stack and not state.start:
                 break
             output += token_str
+            if self.verbose:
+                print("\r" + output, end="", flush=True)
             update_state(token_str)
         try:
             return dict(json.loads(output))
-        except json.JSONDecodeError:
-            print(f"Couldn't parse dictionary from LLM Output...\n{output}")
+        except (json.JSONDecodeError, ValueError):
+            if self.verbose:
+                print(f"Couldn't parse dictionary from LLM Output.\n{output}")
             return {"prompt": prompt.prompt}
 
     def process_prompts(self) -> List[Dict[str, Any]]:
