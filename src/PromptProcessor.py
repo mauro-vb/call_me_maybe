@@ -16,6 +16,8 @@ class JSONState:
         self.expect_value: bool = False
         self.current_key: str = ''
         self.buffer: str = ''
+        self.number_has_digit = False
+        self.bool_written = False
 
 
 class PromptProcessor:
@@ -89,9 +91,22 @@ class PromptProcessor:
         output = ''
 
         def get_valid_tokens() -> List[int] | None:
-            def is_number_token(t: str) -> bool:
+
+            def is_valid_bool_token(t: str) -> bool:
+                candidate = state.bool_buffer + t.strip()
+                return any(
+                    b.startswith(candidate) for b in ["true", "false"]
+                )
+
+            def is_valid_number_token(t: str, is_integer: bool) -> bool:
                 t = t.strip()
-                return all(c in "0123456789-." for c in t)
+                dot = '' if is_integer else '.'
+                return all(c in "0123456789-" + dot for c in t)
+
+            def is_valid_number_or_end(t: str, is_integer: bool) -> bool:
+                if is_end_token(t):
+                    return state.number_has_digit
+                return is_valid_number_token(t, is_integer)
 
             def is_valid_str_token(t: str) -> bool:
                 quote_count: int = t.count('"')
@@ -129,10 +144,21 @@ class PromptProcessor:
                         if value['type'] == 'string':
                             return self.model.get_valid_token_ids_by_predicate(
                                 lambda t: t.strip() == '"')
-                        if value['type'] == 'number':
+                        if value['type'] in ('number', 'integer', 'double', 'float'):
                             return self.model.get_valid_token_ids_by_predicate(
-                                lambda t: is_number_token(t) or is_end_token(t)
+                                lambda t: is_valid_number_or_end(
+                                    t, value['type'] == 'integer'
+                                ) or is_end_token(t)
                             )
+                        if value['type'] == 'boolean':
+                            if state.bool_written:
+                                return self.model.get_valid_token_ids_by_predicate(
+                                    lambda t: is_end_token(t)
+                                )
+                            state.bool_written = True
+                            return self.model.get_valid_token_ids_by_predicate(
+                                    lambda t: t.strip() in {"true", "false"}
+                                )
 
             if state.expect_colon:
                 return self.model.get_valid_token_ids_by_predicate(
@@ -145,7 +171,10 @@ class PromptProcessor:
             return None
 
         def update_state(token_str: str) -> None:
+
             for char in token_str:
+                if char.isdigit():
+                    state.number_has_digit = True
                 if char == '"':
                     state.in_string = not state.in_string
                     if state.in_string:
@@ -153,6 +182,7 @@ class PromptProcessor:
                     else:
                         if state.expect_key:
                             state.current_key = state.buffer
+                            state.bool_written = False
                             state.expect_key = False
                             state.expect_colon = True
                         elif state.expect_value:
@@ -177,6 +207,7 @@ class PromptProcessor:
                 elif char == ',':
                     state.expect_key = True
                     state.expect_value = False
+                    state.number_has_digit = False
 
         for token_id, token_str in self.model.generate_stream(
             full_prompt, get_valid_tokens

@@ -8,7 +8,7 @@ class Prompt(BaseModel):
 
 
 SUPPORTED_TYPES: Tuple[str, str] = (
-    'number', 'string'
+    'number', 'string', 'integer', 'double', 'float', 'boolean', 'array', 'list'
 )
 
 
