@@ -92,12 +92,6 @@ class PromptProcessor:
 
         def get_valid_tokens() -> List[int] | None:
 
-            def is_valid_bool_token(t: str) -> bool:
-                candidate = state.bool_buffer + t.strip()
-                return any(
-                    b.startswith(candidate) for b in ["true", "false"]
-                )
-
             def is_valid_number_token(t: str, is_integer: bool) -> bool:
                 t = t.strip()
                 dot = '' if is_integer else '.'
@@ -144,17 +138,20 @@ class PromptProcessor:
                         if value['type'] == 'string':
                             return self.model.get_valid_token_ids_by_predicate(
                                 lambda t: t.strip() == '"')
-                        if value['type'] in ('number', 'integer', 'double', 'float'):
+                        if value['type'] in (
+                            'number', 'integer', 'double', 'float'
+                        ):
                             return self.model.get_valid_token_ids_by_predicate(
                                 lambda t: is_valid_number_or_end(
                                     t, value['type'] == 'integer'
                                 ) or is_end_token(t)
                             )
                         if value['type'] == 'boolean':
+                            end = self.model.get_valid_token_ids_by_predicate(
+                                lambda t: is_end_token(t)
+                            )
                             if state.bool_written:
-                                return self.model.get_valid_token_ids_by_predicate(
-                                    lambda t: is_end_token(t)
-                                )
+                                return end
                             state.bool_written = True
                             return self.model.get_valid_token_ids_by_predicate(
                                     lambda t: t.strip() in {"true", "false"}

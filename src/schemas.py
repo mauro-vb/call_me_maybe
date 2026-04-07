@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, model_validator
-from typing import Dict, Tuple
+from typing import Dict
 
 
 class Prompt(BaseModel):
@@ -7,9 +7,11 @@ class Prompt(BaseModel):
     prompt: str = Field(min_length=1)
 
 
-SUPPORTED_TYPES: Tuple[str, str] = (
-    'number', 'string', 'integer', 'double', 'float', 'boolean', 'array', 'list'
-)
+# SUPPORTED_TYPES: Tuple[str, str, ...] = (
+#     'number', 'string',
+#     'integer', 'double',
+#     'float', 'boolean', 'array', 'list'
+# )
 
 
 class FunctionDefinition(BaseModel):
@@ -30,10 +32,10 @@ class FunctionDefinition(BaseModel):
                     f'Missing type for parameter {param}'
                     f' in function {self.name}'
                 )
-            ptype: str = value.get('type', '')
-            if ptype not in SUPPORTED_TYPES:
-                raise ValueError(
-                    f'Unsupported parameter type {ptype}'
-                    f' in function {self.name}'
-                )
+        # ptype: str = value.get('type', '')
+        # if ptype not in SUPPORTED_TYPES:
+        #         raise ValueError(
+        #             f'Unsupported parameter type {ptype}'
+        #             f' in function {self.name}'
+        #         )
         return self
